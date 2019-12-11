@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.OrderBy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -290,6 +291,42 @@ public class ProductFacadeImpl implements ProductFacade {
 
 
     return productList;
+  }
+
+  @Override
+  public ReadableProductList getProductListsByRecommendation(MerchantStore store, Language lang,ProductCriteria criteria) throws Exception{
+    Validate.notNull(criteria, "Criteria cannot be null");
+    List<Long> categoryIds = new ArrayList<Long>();
+    categoryIds.add(2L);
+    criteria.setCategoryIds(categoryIds);
+    ReadableProductList readableProductList = getProductListsByCriterias(store, lang, criteria);
+    ReadableProductList filteredList = new ReadableProductList();
+    filteredList.setTotalCount(0);
+    for(ReadableProduct product: readableProductList.getProducts()) {
+      if (isRecommendedProduct(product)) {
+        filteredList.getProducts().add(product);
+        filteredList.setTotalCount(filteredList.getTotalCount()+1);
+      }
+    }
+    return filteredList;
+  }
+
+  private boolean isRecommendedProduct(ReadableProduct product){
+    if(product.isDiscounted() && product.isCanBePurchased()){
+      float originalPrice = Float.valueOf(product.getOriginalPrice().substring(1, product.getOriginalPrice().length()));
+      float finalPrice = Float.valueOf(product.getFinalPrice().substring(1, product.getFinalPrice().length()));
+      System.out.println(originalPrice - finalPrice);
+      System.out.println("Quantity "+product.getQuantity());
+      if(originalPrice - finalPrice < 20.0){
+        return false;
+      }
+      if(product.getQuantity() < 13){
+        return false;
+      }
+      return true;
+    } else{
+      return false;
+    }
   }
 
   @Override

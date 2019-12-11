@@ -426,6 +426,63 @@ public class ProductApi {
   }
 
   /**
+   * recommended
+   *
+   * @param request
+   * @param response
+   * @return
+   * @throws Exception
+   */
+  @RequestMapping(value = "/products/recommended", method = RequestMethod.GET)
+  @ResponseBody
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+      @ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en")
+  })
+  public ReadableProductList getRecommended(
+      @RequestParam(value = "lang", required = false) String lang,
+      @RequestParam(value = "start", required = false) Integer start,
+      @RequestParam(value = "count", required = false) Integer count,
+      @ApiIgnore MerchantStore merchantStore,
+      @ApiIgnore Language language,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+
+    ProductCriteria criteria = new ProductCriteria();
+    if (lang != null) {
+      criteria.setLanguage(lang);
+    } else {
+      criteria.setLanguage(language.getCode());
+    }
+
+    if (start != null) {
+      criteria.setStartIndex(start);
+    }
+    if (count != null) {
+      criteria.setMaxCount(count);
+    }
+
+    // TODO
+    // RENTAL add filter by owner
+    // REPOSITORY to use the new filters
+
+    try {
+      return productFacade.getProductListsByRecommendation(merchantStore, language, criteria);
+
+    } catch (Exception e) {
+
+      LOGGER.error("Error while filtering products product", e);
+      try {
+        response.sendError(503, "Error while filtering products " + e.getMessage());
+      } catch (Exception ignore) {
+      }
+
+      return null;
+    }
+  }
+
+  /**
    * API for getting a product
    *
    * @param id
