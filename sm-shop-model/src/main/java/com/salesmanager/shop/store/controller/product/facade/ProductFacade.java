@@ -117,7 +117,7 @@ public interface ProductFacade {
    */
   ReadableProductList getProductListsByCriterias(MerchantStore store, Language language,
       ProductCriteria criterias) throws Exception;
-
+  ReadableProductList getProductListsByRecommendation(MerchantStore store, Language lang,ProductCriteria criterias) throws Exception;
 
   /**
    * Adds a product to a category
